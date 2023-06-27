@@ -1,7 +1,6 @@
-import 'dart:ui';
-
+import 'package:e_commerce_app/ui/screens/home.dart';
+import 'package:e_commerce_app/util/custom_color.dart';
 import 'package:flutter/material.dart';
-import 'package:iconsax/iconsax.dart'; // <------------ import iconsax
 
 class IntroductionScreen extends StatelessWidget {
   const IntroductionScreen({super.key});
@@ -14,91 +13,50 @@ class IntroductionScreen extends StatelessWidget {
         body: SafeArea(
           child: Container(
             decoration: const BoxDecoration(
-              color: Color(
-                0xff58AEE8,
-              ),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xff58AEE8),
-                  Color(0xff3B5EDF),
+                  CustomColor.lightBlue,
+                  CustomColor.lightBlue2,
                 ],
               ),
             ),
             child: Column(
               children: [
-                const SizedBox(
-                  height: 70,
-                ),
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 44.0,
-                      ),
-                      child: Image.asset(
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 44.0,
+                    vertical: 70,
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Image.asset(
                         'assets/images/circles.png',
                       ),
-                    ),
-                    Column(
-                      children: [
-                        Image.asset(
-                          'assets/images/apple.png',
-                          width: 85.0,
-                          height: 103.0,
-                        ),
-                        const Text(
-                          'اپل شاپ',
-                          style: TextStyle(
-                            fontFamily: 'lalezar',
-                            color: Colors.white,
-                            fontSize: 22,
+                      Column(
+                        children: [
+                          Image.asset(
+                            'assets/images/apple.png',
+                            width: 85.0,
+                            height: 103.0,
                           ),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-                const SizedBox(
-                  height: 70,
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 44.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'اوج هیجان',
-                        style: TextStyle(
-                          fontFamily: 'shb',
-                          fontSize: 32,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        'با خرید محصولات',
-                        style: TextStyle(
-                          fontFamily: 'shb',
-                          fontSize: 32,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        'اپل!',
-                        style: TextStyle(
-                          fontFamily: 'shb',
-                          fontSize: 32,
-                          color: Colors.white,
-                        ),
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      CustomButton()
+                          const Text(
+                            'اپل شاپ',
+                            style: TextStyle(
+                              fontFamily: 'lalezar',
+                              color: CustomColor.white,
+                              fontSize: 22,
+                            ),
+                          ),
+                        ],
+                      )
                     ],
                   ),
+                ),
+                const MainContainer(
+                  contents: ['اوج هیجان', 'با خرید محصولات', 'اپل!'],
                 ),
               ],
             ),
@@ -109,16 +67,56 @@ class IntroductionScreen extends StatelessWidget {
   }
 }
 
-class CustomButton extends StatelessWidget {
-  const CustomButton({
+class MainContainer extends StatelessWidget {
+  const MainContainer({
     super.key,
+    required this.contents,
   });
+  final List<String> contents;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 44.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (String content in contents)
+            Text(
+              content,
+              style: const TextStyle(
+                fontFamily: 'shb',
+                fontSize: 32,
+                color: Colors.white,
+              ),
+            ),
+          const SizedBox(
+            height: 10,
+          ),
+          CustomButton(
+            whenClick: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const HomeScreen(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CustomButton extends StatelessWidget {
+  const CustomButton({super.key, required this.whenClick});
+  final Function whenClick;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        print('object');
+        whenClick();
       },
       child: Stack(
         alignment: Alignment.center,
