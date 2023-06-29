@@ -1,19 +1,24 @@
+import 'package:e_commerce_app/ui/widgets/badge.dart';
 import 'package:e_commerce_app/util/custom_color.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
 class ProductCart extends StatelessWidget {
-  const ProductCart({super.key});
+  const ProductCart({
+    super.key,
+    required this.hasPadding,
+  });
+  final hasPadding;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 160.0,
-      margin: const EdgeInsets.only(
-        left: 20.0,
-        right: 10.0,
-        top: 20.0,
-        bottom: 20.0,
+      margin: EdgeInsets.only(
+        left: hasPadding ? 20.0 : 0.0,
+        right: hasPadding ? 10.0 : 0.0,
+        top: hasPadding ? 20.0 : 0.0,
+        bottom: hasPadding ? 20.0 : 0.0,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -37,23 +42,10 @@ class ProductCart extends StatelessWidget {
                     size: 30.0,
                   ),
                 ),
-                Positioned(
+                const Positioned(
                   bottom: 10,
                   left: 10,
-                  child: Container(
-                    width: 25,
-                    height: 15,
-                    decoration: BoxDecoration(
-                      color: CustomColor.red,
-                      borderRadius: BorderRadiusDirectional.circular(8.0),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '%3',
-                        style: Theme.of(context).textTheme.labelSmall,
-                      ),
-                    ),
-                  ),
+                  child: CustomBadge(),
                 )
               ],
             ),
@@ -89,7 +81,7 @@ class ProductCart extends StatelessWidget {
               child: Row(
                 children: [
                   const Padding(
-                    padding: EdgeInsets.only(right: 10),
+                    padding: EdgeInsets.only(right: 5),
                     child: Icon(
                       Iconsax.arrow_circle_right,
                       color: CustomColor.white,
@@ -97,7 +89,7 @@ class ProductCart extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(
-                    width: 12.0,
+                    width: 5.0,
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -114,13 +106,15 @@ class ProductCart extends StatelessWidget {
                     ],
                   ),
                   const Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.only(
+                  const Padding(
+                    padding: EdgeInsets.only(
                       left: 10,
                     ),
                     child: Text(
                       'تومان',
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: TextStyle(
+                        color: CustomColor.white,
+                      ),
                     ),
                   ),
                 ],

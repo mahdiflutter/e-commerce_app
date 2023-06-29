@@ -81,7 +81,9 @@ class ProductsList extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 itemCount: 10,
                 itemBuilder: (context, index) {
-                  return const ProductCart();
+                  return const ProductCart(
+                    hasPadding: true,
+                  );
                 },
               ),
             )

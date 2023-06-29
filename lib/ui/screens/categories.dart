@@ -1,3 +1,4 @@
+import 'package:e_commerce_app/ui/widgets/header.dart';
 import 'package:e_commerce_app/util/custom_color.dart';
 import 'package:flutter/material.dart';
 
@@ -18,47 +19,28 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         body: SafeArea(
           child: CustomScrollView(
             slivers: [
+              const Header(title: 'دسته بندی ها'),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(
-                  vertical: 20,
                   horizontal: 44.0,
                 ),
-                sliver: SliverToBoxAdapter(
-                  child: Container(
-                    width: double.infinity,
-                    height: 46.0,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadiusDirectional.circular(15),
-                      color: Colors.white,
-                      boxShadow: const [
-                        BoxShadow(
-                          blurRadius: 4.0,
-                          color: Colors.grey,
-                          spreadRadius: 0.5,
-                          offset: Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Text(
-                          'دسته بندی ها',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const Positioned(
-                          left: 15,
-                          child: Icon(
-                            Icons.apple,
-                            color: CustomColor.blue,
-                            size: 25.0,
-                          ),
-                        ),
-                      ],
-                    ),
+                sliver: SliverGrid.builder(
+                  itemCount: 8,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 20,
+                    mainAxisSpacing: 20,
                   ),
+                  itemBuilder: (context, index) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: CustomColor.gray,
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    );
+                  },
                 ),
-              )
+              ),
             ],
           ),
         ),
