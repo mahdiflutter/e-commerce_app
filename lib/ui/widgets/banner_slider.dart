@@ -1,16 +1,22 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:e_commerce_app/data/model/banner.dart';
 import 'package:e_commerce_app/util/custom_color.dart';
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class BannerSlider extends StatefulWidget {
-  const BannerSlider({super.key});
+  const BannerSlider({
+    super.key,
+    required this.banners,
+  });
+  final List<BannerModel> banners;
 
   @override
   State<BannerSlider> createState() => _BannerSliderState();
 }
 
 class _BannerSliderState extends State<BannerSlider> {
-  PageController sliderController = PageController(viewportFraction: 0.8);
+  PageController sliderController = PageController(viewportFraction: 0.9);
 
   @override
   Widget build(BuildContext context) {
@@ -22,15 +28,19 @@ class _BannerSliderState extends State<BannerSlider> {
             height: 177.0,
             child: PageView.builder(
               controller: sliderController,
-              itemCount: 3,
+              itemCount: widget.banners.length,
               itemBuilder: (context, index) {
                 return Container(
                   margin: const EdgeInsetsDirectional.only(
                     end: 10,
                   ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadiusDirectional.circular(15.0),
-                    color: CustomColor.gray,
+                  child: ClipRRect(
+                    borderRadius: BorderRadiusDirectional.circular(15),
+                    child: CachedNetworkImage(
+                      imageUrl: widget.banners[index].thumbnail,
+                      fit: BoxFit.cover,
+                      // color: CustomColor.gray,
+                    ),
                   ),
                 );
               },

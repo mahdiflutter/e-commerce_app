@@ -1,15 +1,19 @@
+import 'package:e_commerce_app/bloc/home/home_bloc.dart';
+import 'package:e_commerce_app/service/di.dart';
 import 'package:e_commerce_app/ui/screens/basket.dart';
 import 'package:e_commerce_app/ui/screens/categories.dart';
 import 'package:e_commerce_app/ui/screens/home.dart';
-import 'package:e_commerce_app/ui/screens/introduction.dart';
-import 'package:e_commerce_app/ui/screens/product_detail.dart';
-import 'package:e_commerce_app/ui/screens/products_by_category.dart';
+// import 'package:e_commerce_app/ui/screens/introduction.dart';
+// import 'package:e_commerce_app/ui/screens/product_detail.dart';
+// import 'package:e_commerce_app/ui/screens/products_by_category.dart';
 import 'package:e_commerce_app/ui/screens/profile.dart';
 import 'package:e_commerce_app/util/custom_color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax/iconsax.dart';
 
 void main() {
+  initGetIt();
   runApp(const App());
 }
 
@@ -21,7 +25,7 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  int screen = 1;
+  int screen = 0;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -137,7 +141,10 @@ class _AppState extends State<App> {
 
   List<Widget> getScreens() {
     return [
-      HomeScreen(),
+      BlocProvider(
+        create: (context) => HomeBloc(),
+        child: const HomeScreen(),
+      ),
       CategoriesScreen(),
       BasketScreen(),
       ProfileScreen(),

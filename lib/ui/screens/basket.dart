@@ -144,7 +144,9 @@ class BasketCart extends StatelessWidget {
                                 style:
                                     Theme.of(context).textTheme.displayMedium,
                               ),
-                              const CustomBadge(),
+                              CustomBadge(
+                                content: '0',
+                              ),
                             ],
                           ),
                         ),

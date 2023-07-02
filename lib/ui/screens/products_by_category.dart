@@ -30,9 +30,7 @@ class ProductsByCategoryScreen extends StatelessWidget {
                     crossAxisSpacing: 10,
                   ),
                   itemBuilder: (context, index) {
-                    return const ProductCart(
-                      hasPadding: false,
-                    );
+                    return Text('00');
                   },
                 ),
               )

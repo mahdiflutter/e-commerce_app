@@ -1,8 +1,14 @@
+import 'package:e_commerce_app/bloc/home/home_bloc.dart';
+import 'package:e_commerce_app/bloc/home/home_event.dart';
+import 'package:e_commerce_app/bloc/home/home_state.dart';
+import 'package:e_commerce_app/data/model/category.dart';
+import 'package:e_commerce_app/data/model/product.dart';
 import 'package:e_commerce_app/ui/widgets/banner_slider.dart';
 import 'package:e_commerce_app/ui/widgets/category_chip.dart';
 import 'package:e_commerce_app/ui/widgets/product_cart.dart';
 import 'package:e_commerce_app/util/custom_color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax/iconsax.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,22 +20,71 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   @override
+  void initState() {
+    // TODO: implement initState
+    BlocProvider.of<HomeBloc>(context).add(
+      HomeSendRequestEvent(),
+    );
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Directionality(
+    return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: CustomColor.white,
-        body: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              SearchBox(),
-              BannerSlider(),
-              CategoriesSlider(),
-              ProductsList(title: 'پرفروش ترین ها🔥'),
-              ProductsList(title: 'پربازدید ترین ها🔍'),
-            ],
-          ),
-        ),
+        body: SafeArea(child: BlocBuilder<HomeBloc, HomeState>(
+          builder: (context, state) {
+            return CustomScrollView(
+              slivers: [
+                if (state is HomeLoadingState) ...[
+                  SliverToBoxAdapter(
+                    child: Text('بمون'),
+                  )
+                ],
+                if (state is HomeResponseState) ...[
+                  SearchBox(),
+                  state.banners.fold((l) {
+                    return SliverToBoxAdapter(
+                      child: Text(l),
+                    );
+                  }, (r) {
+                    return BannerSlider(
+                      banners: r,
+                    );
+                  }),
+                  state.categories.fold(
+                    (l) {
+                      return SliverToBoxAdapter(
+                        child: Text(l),
+                      );
+                    },
+                    (r) {
+                      return CategoriesSlider(categories: r);
+                    },
+                  ),
+                  state.firstProducts.fold((l) {
+                    return SliverToBoxAdapter(
+                      child: Text(l),
+                    );
+                  }, (r) {
+                    return ProductsList(title: 'پرفروش ترین ها🔥', products: r);
+                  }),
+                  state.secondProducts.fold((l) {
+                    return SliverToBoxAdapter(
+                      child: Text(l),
+                    );
+                  }, (r) {
+                    return ProductsList(
+                        title: 'پربازدید ترین ها🔍', products: r);
+                  })
+                  // ProductsList(title: 'پربازدید ترین ها🔍'),
+                ]
+              ],
+            );
+          },
+        )),
       ),
     );
   }
@@ -39,8 +94,10 @@ class ProductsList extends StatelessWidget {
   const ProductsList({
     super.key,
     required this.title,
+    required this.products,
   });
   final String title;
+  final List<ProductModel> products;
 
   @override
   Widget build(BuildContext context) {
@@ -79,10 +136,11 @@ class ProductsList extends StatelessWidget {
               height: 256.0,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: 10,
+                itemCount: products.length,
                 itemBuilder: (context, index) {
-                  return const ProductCart(
+                  return ProductCart(
                     hasPadding: true,
+                    product: products[index],
                   );
                 },
               ),
@@ -97,7 +155,9 @@ class ProductsList extends StatelessWidget {
 class CategoriesSlider extends StatelessWidget {
   const CategoriesSlider({
     super.key,
+    required this.categories,
   });
+  final List<CategoryModel> categories;
 
   @override
   Widget build(BuildContext context) {
@@ -135,10 +195,13 @@ class CategoriesSlider extends StatelessWidget {
             SizedBox(
               height: 106.0,
               child: ListView.builder(
-                itemCount: 9,
+                itemCount: categories.length,
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index) {
-                  return CategoryChip(index: index);
+                  return CategoryChip(
+                    index: index,
+                    category: categories[index],
+                  );
                 },
               ),
             ),

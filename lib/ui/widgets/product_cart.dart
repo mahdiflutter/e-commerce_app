@@ -1,3 +1,5 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:e_commerce_app/data/model/product.dart';
 import 'package:e_commerce_app/ui/widgets/badge.dart';
 import 'package:e_commerce_app/util/custom_color.dart';
 import 'package:flutter/material.dart';
@@ -7,8 +9,10 @@ class ProductCart extends StatelessWidget {
   const ProductCart({
     super.key,
     required this.hasPadding,
+    required this.product,
   });
-  final hasPadding;
+  final bool hasPadding;
+  final ProductModel product;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +36,11 @@ class ProductCart extends StatelessWidget {
             child: Stack(
               alignment: Alignment.bottomCenter,
               children: [
-                Image.asset('assets/images/product.png'),
+                SizedBox(
+                  width: 80.0,
+                  height: 104.0,
+                  child: CachedNetworkImage(imageUrl: product.thumbnail!),
+                ),
                 const Positioned(
                   top: 15,
                   right: 10,
@@ -42,10 +50,12 @@ class ProductCart extends StatelessWidget {
                     size: 30.0,
                   ),
                 ),
-                const Positioned(
+                Positioned(
                   bottom: 10,
                   left: 10,
-                  child: CustomBadge(),
+                  child: CustomBadge(
+                    content: product.persent.toString(),
+                  ),
                 )
               ],
             ),
@@ -57,8 +67,9 @@ class ProductCart extends StatelessWidget {
               horizontal: 10,
             ),
             child: Text(
-              'آیفون 13 پرو',
+              product.name!,
               style: Theme.of(context).textTheme.displayLarge,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           Expanded(
@@ -88,19 +99,17 @@ class ProductCart extends StatelessWidget {
                       size: 28,
                     ),
                   ),
-                  const SizedBox(
-                    width: 5.0,
-                  ),
+                  const Spacer(),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        '26,000,000',
+                        (product.price).toString(),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       Text(
-                        '26,000,000',
+                        (product.price! + product.discountPrice!).toString(),
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ],

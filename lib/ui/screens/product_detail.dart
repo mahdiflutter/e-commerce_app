@@ -108,7 +108,7 @@ class PriceButton extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      const CustomBadge(),
+                      CustomBadge(content: '0'),
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
