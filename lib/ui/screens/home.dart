@@ -6,10 +6,12 @@ import 'package:e_commerce_app/data/model/product.dart';
 import 'package:e_commerce_app/ui/widgets/banner_slider.dart';
 import 'package:e_commerce_app/ui/widgets/category_chip.dart';
 import 'package:e_commerce_app/ui/widgets/product_cart.dart';
+import 'package:e_commerce_app/ui/widgets/spinner.dart';
 import 'package:e_commerce_app/util/custom_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -39,12 +41,10 @@ class _HomeScreenState extends State<HomeScreen> {
             return CustomScrollView(
               slivers: [
                 if (state is HomeLoadingState) ...[
-                  SliverToBoxAdapter(
-                    child: Text('بمون'),
-                  )
+                  const Spinner(),
                 ],
                 if (state is HomeResponseState) ...[
-                  SearchBox(),
+                  const SearchBox(),
                   state.banners.fold((l) {
                     return SliverToBoxAdapter(
                       child: Text(l),

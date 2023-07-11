@@ -1,3 +1,4 @@
+import 'package:e_commerce_app/bloc/categories/categories_bloc.dart';
 import 'package:e_commerce_app/bloc/home/home_bloc.dart';
 import 'package:e_commerce_app/service/di.dart';
 import 'package:e_commerce_app/ui/screens/basket.dart';
@@ -145,7 +146,10 @@ class _AppState extends State<App> {
         create: (context) => HomeBloc(),
         child: const HomeScreen(),
       ),
-      CategoriesScreen(),
+      BlocProvider(
+        create: (context) => CategoriesBloc(),
+        child: const CategoriesScreen(),
+      ),
       BasketScreen(),
       ProfileScreen(),
     ];

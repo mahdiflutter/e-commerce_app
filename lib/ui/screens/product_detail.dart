@@ -1,13 +1,45 @@
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:e_commerce_app/bloc/detailproduct/detailproduct_bloc.dart';
+import 'package:e_commerce_app/bloc/detailproduct/detailproduct_event.dart';
+import 'package:e_commerce_app/bloc/detailproduct/detailproduct_state.dart';
+import 'package:e_commerce_app/data/model/product.dart';
+import 'package:e_commerce_app/data/model/product_image.dart';
+import 'package:e_commerce_app/data/model/productvariant.dart';
+import 'package:e_commerce_app/data/model/property.dart';
+import 'package:e_commerce_app/data/model/variant.dart';
+import 'package:e_commerce_app/data/model/variant_type.dart';
 import 'package:e_commerce_app/ui/widgets/badge.dart';
 import 'package:e_commerce_app/ui/widgets/header.dart';
+import 'package:e_commerce_app/ui/widgets/spinner.dart';
 import 'package:e_commerce_app/util/custom_color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:iconsax/iconsax.dart';
 
-class ProductDetailScreen extends StatelessWidget {
-  const ProductDetailScreen({super.key});
+class ProductDetailScreen extends StatefulWidget {
+  const ProductDetailScreen({
+    super.key,
+    required this.product,
+  });
+  final ProductModel product;
+
+  @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  @override
+  void initState() {
+    BlocProvider.of<DetailProductBloc>(context).add(
+      DetailProductSendRequestEvent(
+        productId: widget.product.id!,
+        categoryId: widget.product.category!,
+      ),
+    );
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,26 +48,79 @@ class ProductDetailScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: CustomColor.white,
         body: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              const Header(
-                title: 'آیفون',
-              ),
-              SliverToBoxAdapter(
-                child: Text(
-                  'آیفون 13 پرومکس',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineLarge,
-                ),
-              ),
-              const ProductGallery(),
-              const SelectColor(),
-              const SelectMemory(),
-              const CustomDropDown(),
-              const CustomDropDown(),
-              const CustomDropDown(),
-              const FooterSection(),
-            ],
+          child: BlocBuilder<DetailProductBloc, DetailProductState>(
+            builder: (context, state) {
+              return CustomScrollView(
+                slivers: [
+                  if (state is DetailProductLoadingState) ...[
+                    const Spinner(),
+                  ],
+                  if (state is DetailProductResponseState) ...[
+                    state.categoryResponse.fold((l) {
+                      return SliverToBoxAdapter(
+                        child: Text(l),
+                      );
+                    }, (r) {
+                      return Header(
+                        title: r.title!,
+                      );
+                    }),
+
+                    SliverToBoxAdapter(
+                      child: Text(
+                        widget.product.name!,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.headlineLarge,
+                      ),
+                    ),
+                    state.images.fold(
+                      (l) {
+                        return SliverToBoxAdapter(
+                          child: Text(l),
+                        );
+                      },
+                      (r) => ProductGallery(
+                        images: r,
+                        mainImage: widget.product.thumbnail!,
+                      ),
+                    ),
+                    state.productVariants.fold(
+                      (l) {
+                        return SliverToBoxAdapter(
+                          child: Text(l),
+                        );
+                      },
+                      (productVariants) => VariantContainer(
+                        productVariants: productVariants,
+                      ),
+                    ),
+                    //  const SelectMemory(),
+                    CustomDropDown(
+                      description: widget.product.description!,
+                      title: 'توضیحات محصول',
+                    ),
+                    state.properties.fold((l) {
+                      return SliverToBoxAdapter(
+                        child: Text(l),
+                      );
+                    }, (r) {
+                      if (r.isNotEmpty) {
+                        return PropertiesDropDown(properties: r);
+                      } else {
+                        return const SliverToBoxAdapter(
+                          child: Row(),
+                        );
+                      }
+                    })
+
+                    // CustomDropDown(description: widget.product.description!),
+                    // const CustomDropDown(),
+                    // const CustomDropDown(),
+                    // const FooterSection(),
+                  ],
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -126,7 +211,7 @@ class PriceButton extends StatelessWidget {
                           ),
                         ],
                       ),
-                      Text(
+                      const Text(
                         'تومان',
                         style: TextStyle(color: Colors.white),
                       ),
@@ -195,11 +280,21 @@ class AddToBasketButton extends StatelessWidget {
   }
 }
 
-class CustomDropDown extends StatelessWidget {
+class CustomDropDown extends StatefulWidget {
+  final String description;
+  final String title;
   const CustomDropDown({
     super.key,
+    required this.description,
+    required this.title,
   });
 
+  @override
+  State<CustomDropDown> createState() => _CustomDropDownState();
+}
+
+class _CustomDropDownState extends State<CustomDropDown> {
+  bool isOpen = false;
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
@@ -209,30 +304,157 @@ class CustomDropDown extends StatelessWidget {
         bottom: 20.0,
       ),
       sliver: SliverToBoxAdapter(
-        child: Container(
-          width: double.infinity,
-          height: 46.0,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(width: 1, color: CustomColor.gray),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-          child: Row(
-            children: [
-              const Text('مشخصات فنی:'),
-              const Spacer(),
-              Text(
-                'مشاهده',
-                style: Theme.of(context).textTheme.labelMedium,
+        child: Column(
+          children: [
+            InkWell(
+              onTap: () {
+                setState(() {
+                  isOpen = !isOpen;
+                });
+              },
+              child: Container(
+                width: double.infinity,
+                height: 46.0,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(width: 1, color: CustomColor.gray),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Row(
+                  children: [
+                    Text(widget.title),
+                    const Spacer(),
+                    Text(
+                      'مشاهده',
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                    const SizedBox(width: 10),
+                    Icon(
+                      isOpen
+                          ? Iconsax.arrow_circle_down
+                          : Iconsax.arrow_circle_left,
+                      color: CustomColor.blue,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(width: 10),
-              const Icon(
-                Iconsax.arrow_circle_left,
-                color: CustomColor.blue,
+            ),
+            const SizedBox(height: 15),
+            Visibility(
+              visible: isOpen,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(width: 1, color: CustomColor.gray),
+                ),
+                padding: const EdgeInsets.all(10),
+                child: Text(
+                  widget.description,
+                  style: const TextStyle(
+                    height: 1.7,
+                    fontSize: 14,
+                  ),
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class PropertiesDropDown extends StatefulWidget {
+  final List<PropertyModel> properties;
+
+  const PropertiesDropDown({
+    super.key,
+    required this.properties,
+  });
+
+  @override
+  State<PropertiesDropDown> createState() => _PropertiesDropDownState();
+}
+
+class _PropertiesDropDownState extends State<PropertiesDropDown> {
+  bool isOpen = false;
+  @override
+  Widget build(BuildContext context) {
+    return SliverPadding(
+      padding: const EdgeInsets.only(
+        left: 44.0,
+        right: 44.0,
+        bottom: 20.0,
+      ),
+      sliver: SliverToBoxAdapter(
+        child: Column(
+          children: [
+            InkWell(
+              onTap: () {
+                setState(() {
+                  isOpen = !isOpen;
+                });
+              },
+              child: Container(
+                width: double.infinity,
+                height: 46.0,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(width: 1, color: CustomColor.gray),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Row(
+                  children: [
+                    const Text('مشخصات فنی'),
+                    const Spacer(),
+                    Text(
+                      'مشاهده',
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                    const SizedBox(width: 10),
+                    Icon(
+                      isOpen
+                          ? Iconsax.arrow_circle_down
+                          : Iconsax.arrow_circle_left,
+                      color: CustomColor.blue,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 15),
+            Visibility(
+              visible: isOpen,
+              child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(width: 1, color: CustomColor.gray),
+                  ),
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    children: [
+                      for (var property in widget.properties)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10.0),
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            children: [
+                              Text(property.title!),
+                              const Text(":"),
+                              Text(property.value!),
+                            ],
+                          ),
+                        )
+                    ],
+                  )),
+            ),
+          ],
         ),
       ),
     );
@@ -282,49 +504,22 @@ class SelectMemory extends StatelessWidget {
   }
 }
 
-class SelectColor extends StatelessWidget {
-  const SelectColor({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 44.0),
-      sliver: SliverToBoxAdapter(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'انتخاب رنک',
-            ),
-            const SizedBox(
-              height: 10.0,
-            ),
-            Row(
-              children: [
-                Container(
-                  width: 26.0,
-                  height: 26.0,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: CustomColor.blue,
-                  ),
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class ProductGallery extends StatelessWidget {
+class ProductGallery extends StatefulWidget {
   const ProductGallery({
     super.key,
+    required this.images,
+    required this.mainImage,
   });
+  final List<ProductImageModel> images;
+  final String mainImage;
 
+  @override
+  State<ProductGallery> createState() => _ProductGalleryState();
+}
+
+class _ProductGalleryState extends State<ProductGallery> {
+  bool isMainImage = true;
+  int imageSelected = 0;
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
@@ -362,9 +557,10 @@ class ProductGallery extends StatelessWidget {
                       SizedBox(
                         width: 101.0,
                         height: 148.0,
-                        child: Image.asset(
-                          'assets/images/product.png',
-                          fit: BoxFit.cover,
+                        child: CachedNetworkImage(
+                          imageUrl: isMainImage
+                              ? widget.mainImage
+                              : widget.images[imageSelected].thumbnail,
                         ),
                       ),
                       const Row(
@@ -391,22 +587,44 @@ class ProductGallery extends StatelessWidget {
                     height: 90.0,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: 3,
+                      itemCount: widget.images.length,
                       itemBuilder: (context, index) {
                         return Column(
                           children: [
-                            Container(
-                              width: 70.0,
-                              height: 70.0,
-                              margin: const EdgeInsets.only(
-                                right: 20,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  width: 1,
-                                  color: CustomColor.gray,
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  isMainImage = false;
+                                  imageSelected = index;
+                                });
+                              },
+                              child: Container(
+                                width: 70.0,
+                                height: 70.0,
+                                margin: const EdgeInsets.only(
+                                  right: 20,
                                 ),
-                                borderRadius: BorderRadius.circular(15),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    width: imageSelected == index &&
+                                            isMainImage == false
+                                        ? 2
+                                        : 1,
+                                    color: imageSelected == index &&
+                                            isMainImage == false
+                                        ? CustomColor.blue
+                                        : CustomColor.gray,
+                                  ),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: CachedNetworkImage(
+                                      imageUrl: widget.images[index].thumbnail,
+                                    ),
+                                  ),
+                                ),
                               ),
                             )
                           ],
@@ -419,6 +637,171 @@ class ProductGallery extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class VariantContainer extends StatelessWidget {
+  const VariantContainer({
+    super.key,
+    required this.productVariants,
+  });
+  final List<ProductVariantModel> productVariants;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 44.0,
+      ),
+      sliver: SliverToBoxAdapter(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            for (var i in productVariants)
+              VariantGenerator(
+                productVariant: i,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class VariantGenerator extends StatelessWidget {
+  final ProductVariantModel productVariant;
+  const VariantGenerator({
+    super.key,
+    required this.productVariant,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (productVariant.variants.isNotEmpty) ...[
+          Row(
+            children: [
+              Text(productVariant.variantType.title),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (productVariant.variantType.type == Types.COLOR) ...[
+            ColorGenerator(colorsList: productVariant.variants)
+          ],
+          if (productVariant.variantType.type == Types.STORAGE) ...[
+            StorageGenerator(storagesList: productVariant.variants)
+          ],
+          const SizedBox(height: 10),
+        ]
+      ],
+    );
+  }
+}
+
+class ColorGenerator extends StatefulWidget {
+  final List<VariantModel> colorsList;
+  const ColorGenerator({
+    super.key,
+    required this.colorsList,
+  });
+
+  @override
+  State<ColorGenerator> createState() => _ColorGeneratorState();
+}
+
+class _ColorGeneratorState extends State<ColorGenerator> {
+  int selected = 0;
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 26.0,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: widget.colorsList.length,
+        itemBuilder: (context, index) {
+          String stringColor = 'ff${widget.colorsList[index].value}';
+          int intColor = int.parse(stringColor, radix: 16);
+          return InkWell(
+            onTap: () {
+              setState(() {
+                selected = index;
+              });
+            },
+            child: AnimatedContainer(
+              width: selected == index ? 60 : 26,
+              margin: const EdgeInsets.only(left: 10),
+              height: 26.0,
+              curve: Curves.linearToEaseOut,
+              duration: const Duration(milliseconds: 300),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                color: Color(intColor),
+              ),
+              child: Center(
+                child: Text(
+                  selected == index ? widget.colorsList[index].name : '',
+                  style: const TextStyle(
+                    color: CustomColor.white,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class StorageGenerator extends StatefulWidget {
+  final List<VariantModel> storagesList;
+  const StorageGenerator({super.key, required this.storagesList});
+
+  @override
+  State<StorageGenerator> createState() => _StorageGeneratorState();
+}
+
+class _StorageGeneratorState extends State<StorageGenerator> {
+  int selected = 0;
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 26.0,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: widget.storagesList.length,
+        itemBuilder: (context, index) {
+          return InkWell(
+            onTap: () {
+              setState(() {
+                selected = index;
+              });
+            },
+            child: AnimatedContainer(
+              margin: const EdgeInsets.only(
+                left: 10,
+              ),
+              width: 74,
+              duration: const Duration(microseconds: 300),
+              curve: Curves.linear,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  width: 2,
+                  color:
+                      selected == index ? CustomColor.blue : CustomColor.gray,
+                ),
+                color: Colors.white,
+              ),
+              child: Center(
+                child: Text(widget.storagesList[index].value),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

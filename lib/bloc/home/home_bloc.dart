@@ -23,11 +23,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           await _categoryRepository.getAllCategories();
       Either<String, List<ProductModel>> firstProducts =
           await _productsRepository.getProductsByFilter(
-        filter: 'Best Seller',
+        key: 'popularity',
+        value: 'Best Seller',
       );
       Either<String, List<ProductModel>> secondProducts =
           await _productsRepository.getProductsByFilter(
-        filter: 'Hotest',
+        key: 'popularity',
+        value: 'Hotest',
       );
       emit(
         HomeResponseState(

@@ -5,18 +5,24 @@ import 'package:e_commerce_app/service/di.dart';
 import 'package:e_commerce_app/util/api_exception.dart';
 
 abstract class ProductsRepository {
-  Future<Either<String, List<ProductModel>>> getProductsByFilter(
-      {required String filter});
+  Future<Either<String, List<ProductModel>>> getProductsByFilter({
+    required String key,
+    required String value,
+  });
 }
 
 class ProductsRepositoryNetwork extends ProductsRepository {
   final ProductsDataSource _dataSource = locator.get();
   @override
-  Future<Either<String, List<ProductModel>>> getProductsByFilter(
-      {required String filter}) async {
+  Future<Either<String, List<ProductModel>>> getProductsByFilter({
+    required String key,
+    required String value,
+  }) async {
     try {
-      final List<ProductModel> resposne =
-          await _dataSource.getProductsByFilter(filter: filter);
+      final List<ProductModel> resposne = await _dataSource.getProductsByFilter(
+        key: key,
+        value: value,
+      );
       return Right(resposne);
     } on ApiException catch (exception) {
       return const Left('در ارتباط با سرور خطایی رخ داد!');

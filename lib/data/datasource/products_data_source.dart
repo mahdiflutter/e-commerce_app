@@ -4,18 +4,19 @@ import 'package:e_commerce_app/service/di.dart';
 import 'package:e_commerce_app/util/api_exception.dart';
 
 abstract class ProductsDataSource {
-  Future<List<ProductModel>> getProductsByFilter({required String filter});
+  Future<List<ProductModel>> getProductsByFilter(
+      {required String key, required String value});
 }
 
 class ProductsDataSourceNetwork extends ProductsDataSource {
   final Dio _dio = locator.get();
   @override
   Future<List<ProductModel>> getProductsByFilter(
-      {required String filter}) async {
+      {required String key, required String value}) async {
     try {
       var response = await _dio.get(
         'collections/products/records',
-        queryParameters: {'filter': 'popularity="$filter"'},
+        queryParameters: {'filter': '$key="$value"'},
       );
       final List<ProductModel> products = response.data['items']
           .map<ProductModel>((map) => ProductModel.fromMap(map))
