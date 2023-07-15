@@ -1,8 +1,11 @@
+import 'package:e_commerce_app/bloc/basket/basket_bloc.dart';
 import 'package:e_commerce_app/data/datasource/banners_data_source.dart';
+import 'package:e_commerce_app/data/datasource/basket_data_source.dart';
 import 'package:e_commerce_app/data/datasource/category_data_source.dart';
 import 'package:e_commerce_app/data/datasource/detailproduct_data_source.dart';
 import 'package:e_commerce_app/data/datasource/products_data_source.dart';
 import 'package:e_commerce_app/data/repository/banners_repository.dart';
+import 'package:e_commerce_app/data/repository/basket_repository.dart';
 import 'package:e_commerce_app/data/repository/category_repository.dart';
 import 'package:e_commerce_app/data/repository/detailproduct_repository.dart';
 import 'package:e_commerce_app/data/repository/products_repository.dart';
@@ -27,7 +30,12 @@ void initGetIt() {
     ProductsDataSourceNetwork(),
   );
   locator.registerSingleton<DetailProductDataSource>(
-      DetailProductDataSourceNetwork());
+    DetailProductDataSourceNetwork(),
+  );
+  locator.registerSingleton<BasketDataSource>(
+    BasketDataSourceLocal(),
+  );
+
   //Repositories
   locator.registerSingleton<BannersRepository>(
     BannersRepositoryNetwork(),
@@ -41,4 +49,10 @@ void initGetIt() {
   locator.registerSingleton<DetailProductRepository>(
     DetailProductRepositoryNetwork(),
   );
+  locator.registerSingleton<BasketRepository>(
+    BasketRepositoryLocal(),
+  );
+
+  //bloc
+  locator.registerSingleton<BasketBloc>(BasketBloc());
 }

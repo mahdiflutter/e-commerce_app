@@ -12,7 +12,6 @@ class BannersDataSourceNetwork extends BannersDataSource {
   @override
   Future<List<BannerModel>> getAllBanners() async {
     try {
-      var dio = Dio();
       var response = await _dio.get('collections/banner/records');
       var result = response.data['items']
           .map<BannerModel>((map) => BannerModel.fromMap(map))

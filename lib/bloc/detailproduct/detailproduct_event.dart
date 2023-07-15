@@ -1,3 +1,5 @@
+import 'package:e_commerce_app/data/model/product.dart';
+
 class DetailProductEvent {}
 
 class DetailProductSendRequestEvent extends DetailProductEvent {
@@ -7,4 +9,9 @@ class DetailProductSendRequestEvent extends DetailProductEvent {
     required this.productId,
     required this.categoryId,
   });
+}
+
+class AddToBasketEvent extends DetailProductEvent {
+  final ProductModel? product;
+  AddToBasketEvent({required this.product});
 }

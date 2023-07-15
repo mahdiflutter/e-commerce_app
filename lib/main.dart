@@ -1,5 +1,8 @@
+import 'package:e_commerce_app/bloc/basket/basket_bloc.dart';
+import 'package:e_commerce_app/bloc/basket/basket_event.dart';
 import 'package:e_commerce_app/bloc/categories/categories_bloc.dart';
 import 'package:e_commerce_app/bloc/home/home_bloc.dart';
+import 'package:e_commerce_app/data/model/order.dart';
 import 'package:e_commerce_app/service/di.dart';
 import 'package:e_commerce_app/ui/screens/basket.dart';
 import 'package:e_commerce_app/ui/screens/categories.dart';
@@ -11,9 +14,14 @@ import 'package:e_commerce_app/ui/screens/profile.dart';
 import 'package:e_commerce_app/util/custom_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:iconsax/iconsax.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  Hive.registerAdapter(OrderModelAdapter());
+  await Hive.openBox<OrderModel>('orders');
   initGetIt();
   runApp(const App());
 }
@@ -150,8 +158,15 @@ class _AppState extends State<App> {
         create: (context) => CategoriesBloc(),
         child: const CategoriesScreen(),
       ),
-      BasketScreen(),
-      ProfileScreen(),
+      BlocProvider(
+        create: (context) {
+          final bloc = locator.get<BasketBloc>();
+          bloc.add(BasketSendRequestEvent());
+          return bloc;
+        },
+        child: const BasketScreen(),
+      ),
+      const ProfileScreen(),
     ];
   }
 }

@@ -22,3 +22,16 @@ class DetailProductResponseState extends DetailProductState {
     required this.properties,
   });
 }
+
+class AddedToBasketState extends DetailProductState {
+  final Either<String, List<ProductImageModel>> images;
+  final Either<String, List<ProductVariantModel>> productVariants;
+  final Either<String, CategoryModel> categoryResponse;
+  final Either<String, List<PropertyModel>> properties;
+  AddedToBasketState({
+    required this.images,
+    required this.productVariants,
+    required this.categoryResponse,
+    required this.properties,
+  });
+}

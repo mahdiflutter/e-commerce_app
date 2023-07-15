@@ -3,7 +3,6 @@ import 'package:dio/dio.dart';
 import 'package:e_commerce_app/data/datasource/category_data_source.dart';
 import 'package:e_commerce_app/data/model/category.dart';
 import 'package:e_commerce_app/service/di.dart';
-import 'package:e_commerce_app/util/api_exception.dart';
 
 abstract class CategoryRepository {
   Future<Either<String, List<CategoryModel>>> getAllCategories();

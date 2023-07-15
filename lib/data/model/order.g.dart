@@ -21,10 +21,10 @@ class OrderModelAdapter extends TypeAdapter<OrderModel> {
       count: fields[1] as int?,
       name: fields[2] as String?,
       garanty: fields[3] as String?,
-      persent: fields[4] as int?,
+      persent: fields[4] as num?,
       realPrice: fields[5] as int?,
       discountPrice: fields[6] as int?,
-      variants: (fields[7] as List?)?.cast<ProductVariantModel>(),
+      thumbnail: fields[7] as String?,
     );
   }
 
@@ -47,7 +47,7 @@ class OrderModelAdapter extends TypeAdapter<OrderModel> {
       ..writeByte(6)
       ..write(obj.discountPrice)
       ..writeByte(7)
-      ..write(obj.variants);
+      ..write(obj.thumbnail);
   }
 
   @override

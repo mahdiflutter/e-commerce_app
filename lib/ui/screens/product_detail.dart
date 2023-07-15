@@ -1,6 +1,8 @@
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:e_commerce_app/bloc/basket/basket_bloc.dart';
+import 'package:e_commerce_app/bloc/basket/basket_event.dart';
 import 'package:e_commerce_app/bloc/detailproduct/detailproduct_bloc.dart';
 import 'package:e_commerce_app/bloc/detailproduct/detailproduct_event.dart';
 import 'package:e_commerce_app/bloc/detailproduct/detailproduct_state.dart';
@@ -31,96 +33,187 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
-  void initState() {
-    BlocProvider.of<DetailProductBloc>(context).add(
-      DetailProductSendRequestEvent(
-        productId: widget.product.id!,
-        categoryId: widget.product.category!,
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) {
+        final bloc = DetailProductBloc();
+        bloc.add(
+          DetailProductSendRequestEvent(
+              productId: widget.product.id!,
+              categoryId: widget.product.category!),
+        );
+        return bloc;
+      },
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          backgroundColor: CustomColor.white,
+          body: SafeArea(
+            child: BlocBuilder<DetailProductBloc, DetailProductState>(
+              builder: (context, state) {
+                return CustomScrollView(
+                  slivers: [
+                    if (state is DetailProductLoadingState) ...[
+                      const Spinner(),
+                    ],
+                    if (state is DetailProductResponseState) ...[
+                      state.categoryResponse.fold((l) {
+                        return SliverToBoxAdapter(
+                          child: Text(l),
+                        );
+                      }, (r) {
+                        return Header(
+                          title: r.title!,
+                        );
+                      }),
+
+                      SliverToBoxAdapter(
+                        child: Text(
+                          widget.product.name!,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.headlineLarge,
+                        ),
+                      ),
+                      state.images.fold(
+                        (l) {
+                          return SliverToBoxAdapter(
+                            child: Text(l),
+                          );
+                        },
+                        (r) => ProductGallery(
+                          images: r,
+                          mainImage: widget.product.thumbnail!,
+                        ),
+                      ),
+                      state.productVariants.fold(
+                        (l) {
+                          return SliverToBoxAdapter(
+                            child: Text(l),
+                          );
+                        },
+                        (productVariants) => VariantContainer(
+                          productVariants: productVariants,
+                        ),
+                      ),
+                      //  const SelectMemory(),
+                      CustomDropDown(
+                        description: widget.product.description!,
+                        title: 'توضیحات محصول',
+                      ),
+                      state.properties.fold((l) {
+                        return SliverToBoxAdapter(
+                          child: Text(l),
+                        );
+                      }, (r) {
+                        if (r.isNotEmpty) {
+                          return PropertiesDropDown(properties: r);
+                        } else {
+                          return const SliverToBoxAdapter(
+                            child: Row(),
+                          );
+                        }
+                      }),
+                      FooterSection(product: widget.product),
+
+                      // CustomDropDown(description: widget.product.description!),
+                      // const CustomDropDown(),
+                      // const CustomDropDown(),
+                    ],
+                    if (state is AddedToBasketState) ...[
+                      state.categoryResponse.fold((l) {
+                        return SliverToBoxAdapter(
+                          child: Text(l),
+                        );
+                      }, (r) {
+                        return Header(
+                          title: r.title!,
+                        );
+                      }),
+
+                      SliverToBoxAdapter(
+                        child: Text(
+                          widget.product.name!,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.headlineLarge,
+                        ),
+                      ),
+                      state.images.fold(
+                        (l) {
+                          return SliverToBoxAdapter(
+                            child: Text(l),
+                          );
+                        },
+                        (r) => ProductGallery(
+                          images: r,
+                          mainImage: widget.product.thumbnail!,
+                        ),
+                      ),
+                      state.productVariants.fold(
+                        (l) {
+                          return SliverToBoxAdapter(
+                            child: Text(l),
+                          );
+                        },
+                        (productVariants) => VariantContainer(
+                          productVariants: productVariants,
+                        ),
+                      ),
+                      //  const SelectMemory(),
+                      CustomDropDown(
+                        description: widget.product.description!,
+                        title: 'توضیحات محصول',
+                      ),
+                      state.properties.fold((l) {
+                        return SliverToBoxAdapter(
+                          child: Text(l),
+                        );
+                      }, (r) {
+                        if (r.isNotEmpty) {
+                          return PropertiesDropDown(properties: r);
+                        } else {
+                          return const SliverToBoxAdapter(
+                            child: Row(),
+                          );
+                        }
+                      }),
+                      const SuccessedAdd()
+                    ],
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
-    super.initState();
   }
+}
+
+class SuccessedAdd extends StatelessWidget {
+  const SuccessedAdd({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: CustomColor.white,
-        body: SafeArea(
-          child: BlocBuilder<DetailProductBloc, DetailProductState>(
-            builder: (context, state) {
-              return CustomScrollView(
-                slivers: [
-                  if (state is DetailProductLoadingState) ...[
-                    const Spinner(),
-                  ],
-                  if (state is DetailProductResponseState) ...[
-                    state.categoryResponse.fold((l) {
-                      return SliverToBoxAdapter(
-                        child: Text(l),
-                      );
-                    }, (r) {
-                      return Header(
-                        title: r.title!,
-                      );
-                    }),
-
-                    SliverToBoxAdapter(
-                      child: Text(
-                        widget.product.name!,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineLarge,
-                      ),
-                    ),
-                    state.images.fold(
-                      (l) {
-                        return SliverToBoxAdapter(
-                          child: Text(l),
-                        );
-                      },
-                      (r) => ProductGallery(
-                        images: r,
-                        mainImage: widget.product.thumbnail!,
-                      ),
-                    ),
-                    state.productVariants.fold(
-                      (l) {
-                        return SliverToBoxAdapter(
-                          child: Text(l),
-                        );
-                      },
-                      (productVariants) => VariantContainer(
-                        productVariants: productVariants,
-                      ),
-                    ),
-                    //  const SelectMemory(),
-                    CustomDropDown(
-                      description: widget.product.description!,
-                      title: 'توضیحات محصول',
-                    ),
-                    state.properties.fold((l) {
-                      return SliverToBoxAdapter(
-                        child: Text(l),
-                      );
-                    }, (r) {
-                      if (r.isNotEmpty) {
-                        return PropertiesDropDown(properties: r);
-                      } else {
-                        return const SliverToBoxAdapter(
-                          child: Row(),
-                        );
-                      }
-                    })
-
-                    // CustomDropDown(description: widget.product.description!),
-                    // const CustomDropDown(),
-                    // const CustomDropDown(),
-                    // const FooterSection(),
-                  ],
-                ],
-              );
-            },
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 44, vertical: 20),
+      sliver: SliverToBoxAdapter(
+        child: Container(
+          height: 60,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: const Center(
+            child: Text(
+              'با موفقیت به سبد خرید اضافه شد.',
+              style: TextStyle(
+                color: CustomColor.green,
+                fontSize: 16,
+                fontFamily: 'shb',
+              ),
+            ),
           ),
         ),
       ),
@@ -129,14 +222,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 }
 
 class FooterSection extends StatelessWidget {
+  final ProductModel product;
   const FooterSection({
     super.key,
+    required this.product,
   });
 
   @override
   Widget build(BuildContext context) {
-    return const SliverPadding(
-      padding: EdgeInsets.only(
+    return SliverPadding(
+      padding: const EdgeInsets.only(
         left: 44.0,
         right: 44.0,
         bottom: 32.0,
@@ -145,11 +240,15 @@ class FooterSection extends StatelessWidget {
         child: Row(
           children: [
             //https://github.com/amirahmadadibi/ecommerce_project/blob/main/lib/screens/product_detail_screen.dart at line 650
-            AddToBasketButton(),
-            SizedBox(
+            AddToBasketButton(product: product),
+            const SizedBox(
               width: 15.0,
             ),
-            PriceButton(),
+            PriceButton(
+              discount: product.persent!,
+              realPrice: product.price!,
+              discountPrice: product.discountPrice!,
+            ),
           ],
         ),
       ),
@@ -158,8 +257,14 @@ class FooterSection extends StatelessWidget {
 }
 
 class PriceButton extends StatelessWidget {
+  final num discount;
+  final int realPrice;
+  final int discountPrice;
   const PriceButton({
     super.key,
+    required this.discount,
+    required this.realPrice,
+    required this.discountPrice,
   });
 
   @override
@@ -193,17 +298,17 @@ class PriceButton extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      CustomBadge(content: '0'),
+                      CustomBadge(content: discount.toString()),
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            '17000000',
+                            realPrice.toString(),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
-                          const Text(
-                            '17000000',
-                            style: TextStyle(
+                          Text(
+                            (realPrice + discountPrice).toString(),
+                            style: const TextStyle(
                               fontFamily: 'shb',
                               color: CustomColor.white,
                               fontSize: 16,
@@ -228,53 +333,67 @@ class PriceButton extends StatelessWidget {
 }
 
 class AddToBasketButton extends StatelessWidget {
+  final ProductModel product;
   const AddToBasketButton({
     super.key,
+    required this.product,
   });
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       flex: 2,
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          Positioned(
-            child: Container(
-              width: 130.0,
-              height: 60.0,
-              decoration: BoxDecoration(
-                color: CustomColor.blue,
-                borderRadius: BorderRadius.circular(15),
+      child: InkWell(
+        onTap: () {
+          BlocProvider.of<DetailProductBloc>(context).add(
+            AddToBasketEvent(
+              product: product,
+            ),
+          );
+          BlocProvider.of<BasketBloc>(context).add(
+            BasketSendRequestEvent(),
+          );
+        },
+        child: Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            Positioned(
+              child: Container(
+                width: 130.0,
+                height: 60.0,
+                decoration: BoxDecoration(
+                  color: CustomColor.blue,
+                  borderRadius: BorderRadius.circular(15),
+                ),
               ),
             ),
-          ),
-          Positioned(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(15.0),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  width: 160.0,
-                  height: 53.0,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'افزودن به سبد خرید',
-                      style: TextStyle(
-                        fontFamily: 'shb',
-                        fontSize: 16,
-                        color: CustomColor.white,
+            Positioned(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(15.0),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    width: 160.0,
+                    height: 53.0,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'افزودن به سبد خرید',
+                        style: TextStyle(
+                          fontFamily: 'shb',
+                          fontSize: 16,
+                          color: CustomColor.white,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

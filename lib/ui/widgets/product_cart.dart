@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:e_commerce_app/bloc/basket/basket_bloc.dart';
 import 'package:e_commerce_app/bloc/detailproduct/detailproduct_bloc.dart';
 import 'package:e_commerce_app/data/model/product.dart';
+import 'package:e_commerce_app/service/di.dart';
 import 'package:e_commerce_app/ui/screens/product_detail.dart';
 import 'package:e_commerce_app/ui/widgets/badge.dart';
 import 'package:e_commerce_app/util/custom_color.dart';
@@ -23,8 +25,8 @@ class ProductCart extends StatelessWidget {
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => BlocProvider(
-              create: (context) => DetailProductBloc(),
+            builder: (context) => BlocProvider<BasketBloc>.value(
+              value: locator.get<BasketBloc>(),
               child: ProductDetailScreen(product: product),
             ),
           ),
