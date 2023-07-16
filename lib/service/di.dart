@@ -13,7 +13,7 @@ import 'package:get_it/get_it.dart';
 import 'package:dio/dio.dart';
 
 var locator = GetIt.instance;
-void initGetIt() {
+Future<void> initGetIt() async {
   locator.registerSingleton<Dio>(
     Dio(
       BaseOptions(baseUrl: 'http://startflutter.ir/api/'),

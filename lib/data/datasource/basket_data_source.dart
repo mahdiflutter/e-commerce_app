@@ -7,10 +7,13 @@ abstract class BasketDataSource {
   Future<void> addToBasket(ProductModel product);
   Future<List<OrderModel>> getOrders();
   Future<int> getTotalPrice();
+  Future<void> increaseCount(String orderId);
+  Future<void> decreaseCount(String orderId);
+  Future<void> deleteOrder(String orderId);
 }
 
 class BasketDataSourceLocal extends BasketDataSource {
-  final ordersBox = Hive.box<OrderModel>('orders');
+  var ordersBox = Hive.box<OrderModel>('orders');
   @override
   Future<void> addToBasket(ProductModel product) async {
     try {
@@ -25,6 +28,7 @@ class BasketDataSourceLocal extends BasketDataSource {
         thumbnail: product.thumbnail,
       );
       await ordersBox.add(order);
+      print('added with successfully♥');
     } catch (exception) {
       throw ApiException(error: 'order has not added to basket!', errorCode: 0);
     }
@@ -33,7 +37,8 @@ class BasketDataSourceLocal extends BasketDataSource {
   @override
   Future<List<OrderModel>> getOrders() async {
     try {
-      List<OrderModel> orders = ordersBox.values.toList();
+      final List<OrderModel> orders = ordersBox.values.toList();
+      print(orders.length);
 
       return orders;
     } catch (exception) {
@@ -44,16 +49,70 @@ class BasketDataSourceLocal extends BasketDataSource {
   @override
   Future<int> getTotalPrice() async {
     try {
-      List<OrderModel> orders = ordersBox.values.toList();
+      final List<OrderModel> orders = ordersBox.values.toList();
       int total = orders.fold(
         0,
-        (previousValue, element) =>
-            previousValue += (element.realPrice! + element.discountPrice!),
+        (previousValue, order) =>
+            previousValue +
+            ((order.realPrice! + order.discountPrice!) * order.count!),
       );
-      print(total);
+
       return total;
     } catch (exception) {
       throw ApiException(error: 'Something went wrong!', errorCode: 0);
+    }
+  }
+
+  @override
+  Future<void> increaseCount(String orderId) async {
+    try {
+      //-----------------
+      final List<OrderModel> allOrders = ordersBox.values.toList();
+      allOrders.forEach((order) {
+        if (order.id == orderId) {
+          int lastCount = order.count!;
+          lastCount += 1;
+          order.count = lastCount;
+        }
+      });
+      await ordersBox.clear();
+      ordersBox.addAll(allOrders);
+    } catch (exception) {
+      throw ApiException(error: 'can not do that!', errorCode: 0);
+    }
+  }
+
+  @override
+  Future<void> decreaseCount(String orderId) async {
+    try {
+      //-----------------
+      final List<OrderModel> allOrders = ordersBox.values.toList();
+      allOrders.forEach((order) {
+        if (order.id == orderId) {
+          int lastCount = order.count!;
+          lastCount -= 1;
+          order.count = lastCount;
+        }
+      });
+      await ordersBox.clear();
+      ordersBox.addAll(allOrders);
+    } catch (exception) {
+      throw ApiException(error: 'can not do that!', errorCode: 0);
+    }
+  }
+
+  @override
+  Future<void> deleteOrder(String orderId) async {
+    try {
+      final List<OrderModel> allOrders = ordersBox.values.toList();
+      final int selectedIndex =
+          allOrders.indexWhere((element) => element.id == orderId);
+      allOrders.removeAt(selectedIndex);
+
+      await ordersBox.clear();
+      ordersBox.addAll(allOrders);
+    } catch (exception) {
+      throw ApiException(error: 'Unable to delete order!', errorCode: 0);
     }
   }
 }

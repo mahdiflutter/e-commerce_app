@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_dashed_line/dotted_dashed_line.dart';
 import 'package:e_commerce_app/bloc/basket/basket_bloc.dart';
 import 'package:e_commerce_app/bloc/basket/basket_event.dart';
+// import 'package:e_commerce_app/bloc/basket/basket_event.dart';
 import 'package:e_commerce_app/bloc/basket/basket_state.dart';
 import 'package:e_commerce_app/data/model/order.dart';
 import 'package:e_commerce_app/ui/widgets/badge.dart';
@@ -9,6 +10,7 @@ import 'package:e_commerce_app/ui/widgets/header.dart';
 import 'package:e_commerce_app/util/custom_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zarinpal/zarinpal.dart';
 
 class BasketScreen extends StatefulWidget {
   const BasketScreen({super.key});
@@ -18,6 +20,17 @@ class BasketScreen extends StatefulWidget {
 }
 
 class _BasketScreenState extends State<BasketScreen> {
+  PaymentRequest _paymentRequest = PaymentRequest();
+  @override
+  void initState() {
+    _paymentRequest.setIsSandBox(true);
+    _paymentRequest.setAmount(1000);
+    _paymentRequest.setDescription('a test');
+    _paymentRequest.setCallbackURL('appleshop://store');
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<BasketBloc, BasketState>(
@@ -29,22 +42,22 @@ class _BasketScreenState extends State<BasketScreen> {
             body: SafeArea(
               child: Stack(
                 children: [
-                  CustomScrollView(
-                    slivers: [
-                      const Header(title: 'سبد خرید'),
-                      if (state is BasketResponseState) ...[
-                        state.ordersResponse.fold((l) {
-                          return SliverToBoxAdapter(
-                            child: Text(l),
-                          );
-                        }, (orders) {
-                          return SliverPadding(
-                            padding: const EdgeInsets.only(
-                              right: 44.0,
-                              left: 44.0,
-                              bottom: 100.0,
-                            ),
-                            sliver: SliverGrid.builder(
+                  if (state is BasketResponseState) ...[
+                    CustomScrollView(
+                      slivers: [
+                        const Header(title: 'سبد خرید'),
+                        SliverPadding(
+                          padding: const EdgeInsets.only(
+                            right: 44.0,
+                            left: 44.0,
+                            bottom: 100.0,
+                          ),
+                          sliver: state.ordersResponse.fold((l) {
+                            return SliverToBoxAdapter(
+                              child: Text(l),
+                            );
+                          }, (orders) {
+                            return SliverGrid.builder(
                               itemCount: orders.length,
                               gridDelegate:
                                   const SliverGridDelegateWithFixedCrossAxisCount(
@@ -53,19 +66,18 @@ class _BasketScreenState extends State<BasketScreen> {
                                 mainAxisExtent: 228.0,
                               ),
                               itemBuilder: (context, index) {
-                                print(orders[index].name);
-                                return BasketCart(
-                                  order: orders[index],
-                                );
+                                return BasketCart(order: orders[index]);
                               },
-                            ),
-                          );
-                        })
+                            );
+                          }),
+                        )
                       ],
-                    ],
-                  ),
+                    ),
+                    BuyButton(totalPrice: state.totalOrders),
+                  ],
+
                   // if (state is BasketResponseState) ...[
-                  //   BuyButton(totalPrice: state.totalOrders),
+                  //
                   // ]
                 ],
               ),
@@ -122,7 +134,7 @@ class BasketCart extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 10.0,
+        horizontal: 5.0,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -147,40 +159,48 @@ class BasketCart extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       CachedNetworkImage(imageUrl: order.thumbnail!),
-                      Container(
-                        width: 110,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: CustomColor.gray),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              onPressed: () {},
-                              padding: const EdgeInsets.all(0),
-                              icon: const Icon(
-                                Icons.add,
-                                color: CustomColor.green,
-                              ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              BlocProvider.of<BasketBloc>(context).add(
+                                BasketIncreaseCountEvent(order: order),
+                              );
+                            },
+                            padding: const EdgeInsets.all(0),
+                            icon: const Icon(
+                              Icons.add,
+                              color: CustomColor.green,
                             ),
-                            Text(
-                              '${order.count}',
-                              style: const TextStyle(
-                                fontSize: 20,
-                              ),
+                          ),
+                          Text(
+                            '${order.count}',
+                            style: const TextStyle(
+                              fontSize: 15,
                             ),
-                            IconButton(
-                              onPressed: () {},
-                              padding: const EdgeInsets.all(0),
-                              icon: const Icon(
-                                Icons.remove,
-                                color: CustomColor.red,
-                              ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              if (order.count != 1) {
+                                BlocProvider.of<BasketBloc>(context).add(
+                                  BasketDecreaseCountEvent(order: order),
+                                );
+                              } else {
+                                BlocProvider.of<BasketBloc>(context).add(
+                                  BasketDeleteOrderEvent(order: order),
+                                );
+                              }
+                            },
+                            padding: const EdgeInsets.all(0),
+                            icon: Icon(
+                              order.count == 1
+                                  ? Icons.delete_outline_rounded
+                                  : Icons.remove,
+                              color: CustomColor.red,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       )
                     ],
                   ),

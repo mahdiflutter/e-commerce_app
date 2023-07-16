@@ -39,8 +39,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         final bloc = DetailProductBloc();
         bloc.add(
           DetailProductSendRequestEvent(
-              productId: widget.product.id!,
-              categoryId: widget.product.category!),
+            productId: widget.product.id!,
+            categoryId: widget.product.category!,
+          ),
         );
         return bloc;
       },
@@ -113,7 +114,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           );
                         }
                       }),
-                      FooterSection(product: widget.product),
+                      FooterSection(
+                        product: widget.product,
+                        orgContext: context,
+                      ),
 
                       // CustomDropDown(description: widget.product.description!),
                       // const CustomDropDown(),
@@ -223,9 +227,11 @@ class SuccessedAdd extends StatelessWidget {
 
 class FooterSection extends StatelessWidget {
   final ProductModel product;
+  final BuildContext orgContext;
   const FooterSection({
     super.key,
     required this.product,
+    required this.orgContext,
   });
 
   @override
@@ -240,7 +246,7 @@ class FooterSection extends StatelessWidget {
         child: Row(
           children: [
             //https://github.com/amirahmadadibi/ecommerce_project/blob/main/lib/screens/product_detail_screen.dart at line 650
-            AddToBasketButton(product: product),
+            AddToBasketButton(product: product, orgContext: orgContext),
             const SizedBox(
               width: 15.0,
             ),
@@ -334,9 +340,11 @@ class PriceButton extends StatelessWidget {
 
 class AddToBasketButton extends StatelessWidget {
   final ProductModel product;
+  final BuildContext orgContext;
   const AddToBasketButton({
     super.key,
     required this.product,
+    required this.orgContext,
   });
 
   @override
@@ -344,11 +352,9 @@ class AddToBasketButton extends StatelessWidget {
     return Expanded(
       flex: 2,
       child: InkWell(
-        onTap: () {
+        onTap: () async {
           BlocProvider.of<DetailProductBloc>(context).add(
-            AddToBasketEvent(
-              product: product,
-            ),
+            AddToBasketEvent(product: product),
           );
           BlocProvider.of<BasketBloc>(context).add(
             BasketSendRequestEvent(),

@@ -18,11 +18,11 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:iconsax/iconsax.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   Hive.registerAdapter(OrderModelAdapter());
   await Hive.openBox<OrderModel>('orders');
-  initGetIt();
+  await initGetIt();
   runApp(const App());
 }
 
@@ -160,11 +160,11 @@ class _AppState extends State<App> {
       ),
       BlocProvider(
         create: (context) {
-          final bloc = locator.get<BasketBloc>();
+          var bloc = locator.get<BasketBloc>();
           bloc.add(BasketSendRequestEvent());
           return bloc;
         },
-        child: const BasketScreen(),
+        child: BasketScreen(),
       ),
       const ProfileScreen(),
     ];

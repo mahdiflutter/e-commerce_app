@@ -39,6 +39,7 @@ class DetailProductBloc extends Bloc<DetailProductEvent, DetailProductState> {
     });
     on<AddToBasketEvent>(
       (event, emit) async {
+        await _basketRepository.addToBasket(event.product!);
         emit(
           DetailProductLoadingState(),
         );
@@ -52,12 +53,11 @@ class DetailProductBloc extends Bloc<DetailProductEvent, DetailProductState> {
             await _repository.getCategory(event.product!.category!);
         final Either<String, List<PropertyModel>> propertiesResponse =
             await _repository.getProperties(event.product!.id!);
-        await _basketRepository.addToBasket(event.product!);
         emit(
           AddedToBasketState(
-            categoryResponse: categoryResponse,
             images: imagesResponse,
             productVariants: variantsResponse,
+            categoryResponse: categoryResponse,
             properties: propertiesResponse,
           ),
         );
